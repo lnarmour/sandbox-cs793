@@ -1,0 +1,11 @@
+affine Jax { N | N>0 }
+input
+	int A { i | 0<=i<N };
+output
+	int B { i,j | 0<=i<N && 0<=j<N };
+let
+	B[i,j] = case
+		{|i==0} : A[j];
+		{|i>0} : B[i-1,j];
+	esac;
+.
