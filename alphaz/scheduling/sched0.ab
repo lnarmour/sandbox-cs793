@@ -1,0 +1,11 @@
+affine Sched0 { N | N>0 }
+input
+	int D { i | 0<=i<10 };
+output
+	int X { i,j | 0<=i && 0<=j && i+j<10};
+let
+	X[i,j] = case
+		{|i+j==9} : D[i];
+		{|i+j<9} : X[i+1, j];
+	esac;
+.
