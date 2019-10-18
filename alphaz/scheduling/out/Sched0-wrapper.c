@@ -41,14 +41,18 @@
 //Memory Macros
 #define D(i) D[i]
 #define X(i,j) X[i][j]
+#define Y(i,j) Y[i][j]
 
 #define X_verify(i,j) X_verify[i][j]
+#define Y_verify(i,j) Y_verify[i][j]
 #define var_X(i,j) X(i,j)
 #define var_X_verify(i,j) X_verify(i,j)
+#define var_Y(i,j) Y(i,j)
+#define var_Y_verify(i,j) Y_verify(i,j)
 
 //function prototypes
-void Sched0(long, int*, int**);
-void Sched0_verify(long, int*, int**);
+void Sched0(long, int*, int**, int**);
+void Sched0_verify(long, int*, int**, int**);
 
 //main
 int main(int argc, char** argv) {
@@ -90,22 +94,36 @@ int main(int argc, char** argv) {
 	
 	//Memory Allocation
 	int mz1, mz2;
-	int* D = (int*)malloc(sizeof(int)*(10));
-	mallocCheck(D, (10), int);
-	int* _lin_X = (int*)malloc(sizeof(int)*(100));
-	mallocCheck(_lin_X, (100), int);
-	int** X = (int**)malloc(sizeof(int*)*(10));
-	mallocCheck(X, (10), int*);
-	for (mz1=0;mz1 < 10; mz1++) {
-		X[mz1] = &_lin_X[(mz1*(10))];
+	int* D = (int*)malloc(sizeof(int)*(N+1));
+	mallocCheck(D, (N+1), int);
+	int* _lin_X = (int*)malloc(sizeof(int)*((N+1) * (N+1)));
+	mallocCheck(_lin_X, ((N+1) * (N+1)), int);
+	int** X = (int**)malloc(sizeof(int*)*(N+1));
+	mallocCheck(X, (N+1), int*);
+	for (mz1=0;mz1 < N+1; mz1++) {
+		X[mz1] = &_lin_X[(mz1*(N+1))];
+	}
+	int* _lin_Y = (int*)malloc(sizeof(int)*((N) * (N)));
+	mallocCheck(_lin_Y, ((N) * (N)), int);
+	int** Y = (int**)malloc(sizeof(int*)*(N));
+	mallocCheck(Y, (N), int*);
+	for (mz1=0;mz1 < N; mz1++) {
+		Y[mz1] = &_lin_Y[(mz1*(N))];
 	}
 	#ifdef VERIFY
-		int* _lin_X_verify = (int*)malloc(sizeof(int)*(100));
-		mallocCheck(_lin_X_verify, (100), int);
-		int** X_verify = (int**)malloc(sizeof(int*)*(10));
-		mallocCheck(X_verify, (10), int*);
-		for (mz1=0;mz1 < 10; mz1++) {
-			X_verify[mz1] = &_lin_X_verify[(mz1*(10))];
+		int* _lin_X_verify = (int*)malloc(sizeof(int)*((N+1) * (N+1)));
+		mallocCheck(_lin_X_verify, ((N+1) * (N+1)), int);
+		int** X_verify = (int**)malloc(sizeof(int*)*(N+1));
+		mallocCheck(X_verify, (N+1), int*);
+		for (mz1=0;mz1 < N+1; mz1++) {
+			X_verify[mz1] = &_lin_X_verify[(mz1*(N+1))];
+		}
+		int* _lin_Y_verify = (int*)malloc(sizeof(int)*((N) * (N)));
+		mallocCheck(_lin_Y_verify, ((N) * (N)), int);
+		int** Y_verify = (int**)malloc(sizeof(int*)*(N));
+		mallocCheck(Y_verify, (N), int*);
+		for (mz1=0;mz1 < N; mz1++) {
+			Y_verify[mz1] = &_lin_Y_verify[(mz1*(N))];
 		}
 	#endif
 
@@ -128,7 +146,7 @@ int main(int argc, char** argv) {
 		
 		
 		int c1;
-		for(c1=0;c1 <= 9;c1+=1)
+		for(c1=0;c1 <= N;c1+=1)
 		 {
 		 	S0((c1));
 		 }
@@ -143,7 +161,7 @@ int main(int argc, char** argv) {
 	gettimeofday(&time, NULL);
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000);
 	
-	Sched0(N, D, X);
+	Sched0(N, D, X, Y);
 
 	gettimeofday(&time, NULL);
 	elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000) - elapsed_time;
@@ -167,7 +185,7 @@ int main(int argc, char** argv) {
 			gettimeofday(&time, NULL);
 			elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000);
 		#endif
-    	Sched0_verify(N, D, X_verify);
+    	Sched0_verify(N, D, X_verify, Y_verify);
     	#ifdef TIMING
     		gettimeofday(&time, NULL);
 			elapsed_time = (((double) time.tv_sec) + ((double) time.tv_usec)/1000000) - elapsed_time;
@@ -192,9 +210,26 @@ int main(int argc, char** argv) {
 				#define S0(i,j) printf("X(%ld,%ld)=",(long) i,(long) j);printf("%d\n",var_X(i,j))
 			#endif
 			int c1,c2;
-			for(c1=0;c1 <= 9;c1+=1)
+			for(c1=0;c1 <= N;c1+=1)
 			 {
-			 	for(c2=0;c2 <= -c1+9;c2+=1)
+			 	for(c2=0;c2 <= -c1+N;c2+=1)
+			 	 {
+			 	 	S0((c1),(c2));
+			 	 }
+			 }
+			#undef S0
+		}
+		
+		{
+			#ifdef NO_PROMPT
+				#define S0(i,j) printf("%d\n",var_Y(i,j))
+			#else
+				#define S0(i,j) printf("Y(%ld,%ld)=",(long) i,(long) j);printf("%d\n",var_Y(i,j))
+			#endif
+			int c1,c2;
+			for(c1=0;c1 <= N-1;c1+=1)
+			 {
+			 	for(c2=0;c2 <= -c1+N-1;c2+=1)
 			 	 {
 			 	 	S0((c1),(c2));
 			 	 }
@@ -208,9 +243,9 @@ int main(int argc, char** argv) {
 			int _errors_ = 0;
 			#define S0(i,j) if (var_X_verify(i,j)!=var_X(i,j)) _errors_++;
 			int c1,c2;
-			for(c1=0;c1 <= 9;c1+=1)
+			for(c1=0;c1 <= N;c1+=1)
 			 {
-			 	for(c2=0;c2 <= -c1+9;c2+=1)
+			 	for(c2=0;c2 <= -c1+N;c2+=1)
 			 	 {
 			 	 	S0((c1),(c2));
 			 	 }
@@ -222,15 +257,38 @@ int main(int argc, char** argv) {
 				printf("TEST for X FAILED. #Errors: %d\n", _errors_);
 			}
 		}
+		{
+			//Error Counter
+			int _errors_ = 0;
+			#define S0(i,j) if (var_Y_verify(i,j)!=var_Y(i,j)) _errors_++;
+			int c1,c2;
+			for(c1=0;c1 <= N-1;c1+=1)
+			 {
+			 	for(c2=0;c2 <= -c1+N-1;c2+=1)
+			 	 {
+			 	 	S0((c1),(c2));
+			 	 }
+			 }
+			#undef S0
+			if(_errors_ == 0){
+				printf("TEST for Y PASSED\n");
+			}else{
+				printf("TEST for Y FAILED. #Errors: %d\n", _errors_);
+			}
+		}
     #endif
     
 	//Memory Free
 	free(D);
 	free(_lin_X);
 	free(X);
+	free(_lin_Y);
+	free(Y);
 	#ifdef VERIFY
 		free(_lin_X_verify);
 		free(X_verify);
+		free(_lin_Y_verify);
+		free(Y_verify);
 	#endif
 	
 	return EXIT_SUCCESS;
@@ -239,6 +297,7 @@ int main(int argc, char** argv) {
 //Memory Macros
 #undef D
 #undef X
+#undef Y
 
 
 //Common Macro undefs

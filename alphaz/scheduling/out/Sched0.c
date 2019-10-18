@@ -97,18 +97,23 @@ inline double __min_double(double x, double y){
 ///Global Variables
 static int* D;
 static int** X;
+static int** Y;
 static char** _flag_X;
+static char** _flag_Y;
 
 
 //Local Function Declarations
 int eval_X(long, int, int);
+int eval_Y(long, int, int);
 
 //Memory Macros
 #define D(i) D[i]
 #define X(i,j) X[i][j]
+#define Y(i,j) Y[i][j]
 #define _flag_X(i,j) _flag_X[i][j]
+#define _flag_Y(i,j) _flag_Y[i][j]
 
-void Sched0(long N, int* _local_D, int** _local_X){
+void Sched0(long N, int* _local_D, int** _local_X, int** _local_Y){
 	///Parameter checking
 	if (!((N >= 1))) {
 		printf("The value of parameters are not valid.\n");
@@ -117,26 +122,50 @@ void Sched0(long N, int* _local_D, int** _local_X){
 	//Copy to global
 	D = _local_D;
 	X = _local_X;
+	Y = _local_Y;
 	
 	//Memory Allocation
 	int mz1, mz2;
 	
-	char* _lin__flag_X = (char*)malloc(sizeof(char)*(100));
-	mallocCheck(_lin__flag_X, (100), char);
-	_flag_X = (char**)malloc(sizeof(char*)*(10));
-	mallocCheck(_flag_X, (10), char*);
-	for (mz1=0;mz1 < 10; mz1++) {
-		_flag_X[mz1] = &_lin__flag_X[(mz1*(10))];
+	char* _lin__flag_X = (char*)malloc(sizeof(char)*((N+1) * (N+1)));
+	mallocCheck(_lin__flag_X, ((N+1) * (N+1)), char);
+	_flag_X = (char**)malloc(sizeof(char*)*(N+1));
+	mallocCheck(_flag_X, (N+1), char*);
+	for (mz1=0;mz1 < N+1; mz1++) {
+		_flag_X[mz1] = &_lin__flag_X[(mz1*(N+1))];
 	}
-	memset(_lin__flag_X, 'N', (100));
+	memset(_lin__flag_X, 'N', ((N+1) * (N+1)));
+	
+	char* _lin__flag_Y = (char*)malloc(sizeof(char)*((N) * (N)));
+	mallocCheck(_lin__flag_Y, ((N) * (N)), char);
+	_flag_Y = (char**)malloc(sizeof(char*)*(N));
+	mallocCheck(_flag_Y, (N), char*);
+	for (mz1=0;mz1 < N; mz1++) {
+		_flag_Y[mz1] = &_lin__flag_Y[(mz1*(N))];
+	}
+	memset(_lin__flag_Y, 'N', ((N) * (N)));
 	#define S0(i,j) eval_X(N,i,j)
 	{
 		//Domain
-		//{i,j|i>=0 && j>=0 && 0>=i+j-9 && N>=1}
+		//{i,j|i>=0 && j>=0 && N>=i+j && N>=1}
 		int c1,c2;
-		for(c1=0;c1 <= 9;c1+=1)
+		for(c1=0;c1 <= N;c1+=1)
 		 {
-		 	for(c2=0;c2 <= -c1+9;c2+=1)
+		 	for(c2=0;c2 <= -c1+N;c2+=1)
+		 	 {
+		 	 	S0((c1),(c2));
+		 	 }
+		 }
+	}
+	#undef S0
+	#define S0(i,j) eval_Y(N,i,j)
+	{
+		//Domain
+		//{i,j|i>=0 && j>=0 && N>=i+j+1 && N>=1}
+		int c1,c2;
+		for(c1=0;c1 <= N-1;c1+=1)
+		 {
+		 	for(c2=0;c2 <= -c1+N-1;c2+=1)
 		 	 {
 		 	 	S0((c1),(c2));
 		 	 }
@@ -147,12 +176,15 @@ void Sched0(long N, int* _local_D, int** _local_X){
 	//Memory Free
 	free(_lin__flag_X);
 	free(_flag_X);
+	
+	free(_lin__flag_Y);
+	free(_flag_Y);
 }
 int eval_X(long N, int i, int j){
 	if ( _flag_X(i,j) == 'N' ) {
 		_flag_X(i,j) = 'I';
 	//Body for X
-		X(i,j) = (((i+j == 9))?D(i):(eval_X(N,i+1,j)));
+		X(i,j) = (((i+j == N))?D(i):(((j == 0))?0:((eval_Y(N,j-1,i))+(7))));
 		_flag_X(i,j) = 'F';
 	} else if ( _flag_X(i,j) == 'I' ) {
 		printf("There is a self dependence on X at (%d,%d) \n",i,j);
@@ -160,11 +192,25 @@ int eval_X(long N, int i, int j){
 	}
 	return X(i,j);
 }
+int eval_Y(long N, int i, int j){
+	if ( _flag_Y(i,j) == 'N' ) {
+		_flag_Y(i,j) = 'I';
+	//Body for Y
+		Y(i,j) = (((i == 0))?1:((eval_X(N,j,i-1))+(3)));
+		_flag_Y(i,j) = 'F';
+	} else if ( _flag_Y(i,j) == 'I' ) {
+		printf("There is a self dependence on Y at (%d,%d) \n",i,j);
+		exit(-1);
+	}
+	return Y(i,j);
+}
 
 //Memory Macros
 #undef D
 #undef X
+#undef Y
 #undef _flag_X
+#undef _flag_Y
 
 
 //Common Macro undefs
