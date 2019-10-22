@@ -1,0 +1,16 @@
+affine ONED { N | N>0 }
+input
+	int A { i,j | 0<=i<=N && 0<=j<=N };
+output
+	int S { i | 0<=i<=N };
+	int S1 { i | 0<=i<=N };
+local
+	int S_int { i, j | 0<=i<=N && 0<=j<=N };
+let
+	S_int[i,j] = case
+		{|j==0}: A[i,0];
+		{|j>0}: S_int[i,j-1] + A[i,j] ;
+	esac;
+	S[i] = S_int[i,N];
+	S1[i] = reduce(+, [j], A[i,j]); 
+.
