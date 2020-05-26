@@ -109,12 +109,12 @@ static char**** _flag_NR_FTable;
 
 
 //Local Function Declarations
-double reduce_bpmax_S1_1(long, long, int, int);
+double reduce_bpmax_verify_S1_1(long, long, int, int);
 double eval_S1(long, long, int, int);
-double reduce_bpmax_S2_1(long, long, int, int);
+double reduce_bpmax_verify_S2_1(long, long, int, int);
 double eval_S2(long, long, int, int);
 double eval_FTable(long, long, int, int, int, int);
-double reduce_bpmax_NR_FTable_1(long, long, int, int, int, int);
+double reduce_bpmax_verify_NR_FTable_1(long, long, int, int, int, int);
 double eval_NR_FTable(long, long, int, int, int, int);
 
 //Memory Macros
@@ -129,7 +129,7 @@ double eval_NR_FTable(long, long, int, int, int, int);
 #define _flag_S2(i,j) _flag_S2[i][j]
 #define _flag_NR_FTable(i1,j1,i2,j2) _flag_NR_FTable[i1][j1][i2][j2]
 
-void bpmax(long M, long N, int* _local_seq1, int* _local_seq2, double**** _local_FTable){
+void bpmax_verify(long M, long N, int* _local_seq1, int* _local_seq2, double**** _local_FTable){
 	///Parameter checking
 	if (!((M >= 3 && N >= 3))) {
 		printf("The value of parameters are not valid.\n");
@@ -287,7 +287,7 @@ void bpmax(long M, long N, int* _local_seq1, int* _local_seq2, double**** _local
 	}
 	free(_flag_NR_FTable);
 }
-double reduce_bpmax_S1_1(long M, long N, int ip, int jp){
+double reduce_bpmax_verify_S1_1(long M, long N, int ip, int jp){
 	double reduceVar = INT_MIN;
 	#define S0(i,j,k) {double __temp__ = (eval_S1(M,N,i,k))+(eval_S1(M,N,k+1,j)); reduceVar = __max_double(reduceVar,__temp__); }
 	{
@@ -306,7 +306,7 @@ double eval_S1(long M, long N, int i, int j){
 	if ( _flag_S1(i,j) == 'N' ) {
 		_flag_S1(i,j) = 'I';
 	//Body for S1
-		S1(i,j) = (((i >= j-3))?0:(__max_double((eval_S1(M,N,i+1,j-1))+(e_intra_score(seq1(i),seq1(j))),reduce_bpmax_S1_1(M,N,i,j))));
+		S1(i,j) = (((i >= j-3))?0:(__max_double((eval_S1(M,N,i+1,j-1))+(e_intra_score(seq1(i),seq1(j))),reduce_bpmax_verify_S1_1(M,N,i,j))));
 		_flag_S1(i,j) = 'F';
 	} else if ( _flag_S1(i,j) == 'I' ) {
 		printf("There is a self dependence on S1 at (%d,%d) \n",i,j);
@@ -314,7 +314,7 @@ double eval_S1(long M, long N, int i, int j){
 	}
 	return S1(i,j);
 }
-double reduce_bpmax_S2_1(long M, long N, int ip, int jp){
+double reduce_bpmax_verify_S2_1(long M, long N, int ip, int jp){
 	double reduceVar = INT_MIN;
 	#define S0(i,j,k) {double __temp__ = (eval_S2(M,N,i,k))+(eval_S2(M,N,k+1,j)); reduceVar = __max_double(reduceVar,__temp__); }
 	{
@@ -333,7 +333,7 @@ double eval_S2(long M, long N, int i, int j){
 	if ( _flag_S2(i,j) == 'N' ) {
 		_flag_S2(i,j) = 'I';
 	//Body for S2
-		S2(i,j) = (((i >= j-3))?0:(__max_double((eval_S2(M,N,i+1,j-1))+(e_intra_score(seq2(-i+N-1),seq2(-j+N-1))),reduce_bpmax_S2_1(M,N,i,j))));
+		S2(i,j) = (((i >= j-3))?0:(__max_double((eval_S2(M,N,i+1,j-1))+(e_intra_score(seq2(-i+N-1),seq2(-j+N-1))),reduce_bpmax_verify_S2_1(M,N,i,j))));
 		_flag_S2(i,j) = 'F';
 	} else if ( _flag_S2(i,j) == 'I' ) {
 		printf("There is a self dependence on S2 at (%d,%d) \n",i,j);
@@ -353,7 +353,7 @@ double eval_FTable(long M, long N, int i1, int j1, int i2, int j2){
 	}
 	return FTable(i1,j1,i2,j2);
 }
-double reduce_bpmax_NR_FTable_1(long M, long N, int i1p, int j1p, int i2p, int j2p){
+double reduce_bpmax_verify_NR_FTable_1(long M, long N, int i1p, int j1p, int i2p, int j2p){
 	double reduceVar = INT_MIN;
 	#define S0(i1,j1,i2,j2,k1,k2) {double __temp__ = (eval_FTable(M,N,i1,k1,i2,k2))+(eval_FTable(M,N,k1+1,j1,k2+1,j2)); reduceVar = __max_double(reduceVar,__temp__); }
 	{
@@ -375,7 +375,7 @@ double eval_NR_FTable(long M, long N, int i1, int j1, int i2, int j2){
 	if ( _flag_NR_FTable(i1,j1,i2,j2) == 'N' ) {
 		_flag_NR_FTable(i1,j1,i2,j2) = 'I';
 	//Body for NR_FTable
-		NR_FTable(i1,j1,i2,j2) = reduce_bpmax_NR_FTable_1(M,N,i1,j1,i2,j2);
+		NR_FTable(i1,j1,i2,j2) = reduce_bpmax_verify_NR_FTable_1(M,N,i1,j1,i2,j2);
 		_flag_NR_FTable(i1,j1,i2,j2) = 'F';
 	} else if ( _flag_NR_FTable(i1,j1,i2,j2) == 'I' ) {
 		printf("There is a self dependence on NR_FTable at (%d,%d,%d,%d) \n",i1,j1,i2,j2);

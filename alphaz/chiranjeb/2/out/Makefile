@@ -1,4 +1,4 @@
-CFLAGS= -O3 -std=c99 -I/usr/include/malloc/
+CFLAGS= -O3  -std=c99  -I/usr/include/malloc/
 LIBRARIES=-lm
 CC?=gcc
 OBJS = bpmax.o 
