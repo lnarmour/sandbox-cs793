@@ -1,0 +1,17 @@
+affine MM2 { N | N>0 }
+input
+	int A { i,j |0<=i<N && 0<=j<N };
+	int B { i,j |0<=i<N && 0<=j<N };
+output
+	int C { i,j,k | 0<=i<N && 0<=j<N && 0<=k<N };
+	int D { i,j,k | 0<=i<N && 0<=j<N && 0<=k<N };
+let
+	C[i,j,k] = case
+		{| k==0 } : C[i,j,0];
+		{| k>0 } : C[i,j,k-1] + A[i,k]*B[k,j];
+	esac;
+	D[i,j,k] = case
+		{| k==0 } : D[i,j,0];
+		{| k>0 } : D[i,j,k-1] + A[i,k]*B[k,j];
+	esac;
+.
