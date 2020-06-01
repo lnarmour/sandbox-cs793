@@ -108,7 +108,6 @@ inline double __min_double(double x, double y){
 //Local Function Declarations
 double reduce_bpmax_S1_1(long, long, int, int, double**);
 double reduce_bpmax_S2_1(long, long, int, int, double**);
-double reduce_bpmax_NR_FTable_1(long, long, int, int, int, int, double****);
 
 //Memory Macros
 #define seq1(i) seq1[i]
@@ -164,17 +163,25 @@ void bpmax(long M, long N, int* seq1, int* seq2, double**** FTable){
 	#define S3(i,j,i2,i3,i4,i5,i6) S2(i2,j+i2) = __max_double((S2(i2+1,j+i2-1))+(e_intra_score(seq2(-i2+N-1),seq2(-j-i2+N-1))),reduce_bpmax_S2_1(M,N,i2,j+i2,S2))
 	#define S4(i1,j1,i2,j2,i4,i5,i6) FTable(j2,j1+j2,i4,i2+i4) = e_inter_score(seq1(j2),seq2(-i4+N-1))
 	#define S5(i1,j1,i2,j2,i4,i5,i6) FTable(j2,j1+j2,i4,i2+i4) = __max_double((((j1 >= 4))?(FTable(j2+1,j1+j2-1,i4,i2+i4))+(e_intra_score(seq1(j2),seq1(j1+j2))):(0)),__max_double((((i2 >= 4))?(FTable(j2,j1+j2,i4+1,i2+i4-1))+(e_intra_score(seq2(-i4+N-1),seq2(-i2-i4+N-1))):(0)),__max_double((S1(j2,j1+j2))+(S2(i4,i2+i4)),(((j1 >= 1 && i2 >= 1))?NR_FTable(j2,j1+j2,i4,i2+i4):(0)))))
-	#define S6(i1,j1,i2,j2,i4,i5,i6) NR_FTable(j2,j1+j2,i4,i2+i4) = reduce_bpmax_NR_FTable_1(M,N,j2,j1+j2,i4,i2+i4,FTable)
+	#define S6(i1,j1,i2,j2,i4,i5,i6) NR_FTable(j2,j1+j2,i4,i2+i4) = NR_FTable(j2,j1+j2,i4,i2+i4)
+	#define S7(i1,j1,i2,j2,i4,i5,i6) NR_FTable(j2,j1+j2,i4,i2+i4) = -(0)
+	#define S8(i1,j1,i2,j2,k1,k2,i6) NR_FTable(j2,j1+j2,k1,i2+k1) = (FTable(j2,k2,k1,i6))+(FTable(k2+1,j1+j2,i6+1,i2+k1))
+	#define S9(i1,j1,i2,j2,k1,k2,i6) NR_FTable(j2,j1+j2,k1,i2+k1) = __max_double(NR_FTable(j2,j1+j2,k1,i2+k1),(FTable(j2,k2,k1,i6))+(FTable(k2+1,j1+j2,i6+1,i2+k1)))
+	#define S10(i1,j1,i2,j2,k1,k2,i6) NR_FTable(j2,j1+j2,k1,i2+k1) = __max_double(NR_FTable(j2,j1+j2,k1,i2+k1),(FTable(j2,k2,k1,i6))+(FTable(k2+1,j1+j2,i6+1,i2+k1)))
 	{
 		//Domain
 		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && 0>=j-3 && M>=j+i2+1 && i2>=0 && j>=0}
-		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && j>=4 && i2>=0 && M>=i2+1 && M>=j+i2+1 && j+i2>=0}
+		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && j>=4 && M>=i2+1 && M>=j+i2+1 && i2>=0 && j+i2>=0}
 		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && 0>=j-3 && N>=j+i2+1 && i2>=0 && j>=0}
-		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && j>=4 && i2>=0 && j+i2>=0 && N>=j+i2+1 && N>=i2+1}
+		//{i,j,i2,i3,i4,i5,i6|i6==0 && i5==0 && i4==0 && i3==0 && i==0 && M>=3 && N>=3 && j>=4 && j+i2>=0 && N>=j+i2+1 && i2>=0 && N>=i2+1}
 		//{i1,j1,i2,j2,i4,i5,i6|i6==i4 && i5==j2 && i2==0 && j1==0 && i1==1 && M>=3 && N>=3 && j2>=0 && M>=j2+1 && i4>=0 && N>=i4+1}
 		//{i1,j1,i2,j2,i4,i5,i6|i6==i2+i4 && i5==j1+j2 && i1==1 && j1+i2>=1 && j2>=0 && M>=j1+j2+1 && N>=i2+i4+1 && N>=3 && M>=3 && j1>=0 && i4>=0 && i2>=0}
-		//{i1,j1,i2,j2,i4,i5,i6|i6==i4-1 && i5==j2-1 && i1==1 && M>=3 && N>=3 && j2>=0 && j1>=1 && M>=j1+j2+1 && i4>=0 && i2>=1 && N>=i2+i4+1 && j1+i2>=1}
-		int c2,c3,c4,c5;
+		//{i1,j1,i2,j2,i4,i5,i6|i6==N && i5==M && i1==1 && i2>=1 && M>=3 && j2>=0 && M>=j1+j2+1 && i4>=0 && N>=i2+i4+1 && j1>=1 && N>=3}
+		//{i1,j1,i2,j2,i4,i5,i6|i6==i4-1 && i5==j2-1 && i1==1 && M>=3 && N>=3 && i2>=1 && N>=i2+i4+1 && j2>=0 && j1>=1 && M>=j1+j2+1 && i4>=0}
+		//{i1,j1,i2,j2,k1,k2,i6|i6==k1 && k2==j2 && i1==1 && M>=3 && N>=3 && i2>=1 && N>=k1+1 && j2>=0 && k1>=0 && M>=j2+1 && M>=j1+j2+1 && j1>=1 && N>=i2+k1+1}
+		//{i1,j1,i2,j2,k1,k2,i6|i6==k1 && i1==1 && k2>=j2+1 && M>=3 && N>=3 && i2>=1 && M>=k2+1 && j2>=0 && M>=j1+j2+1 && k1>=0 && N>=i2+k1+1 && k2>=-1 && j1+j2>=k2+1 && N>=k1+1}
+		//{i1,j1,i2,j2,k1,k2,i6|i1==1 && M>=3 && N>=3 && i6>=k1+1 && M>=k2+1 && i2+k1>=i6+1 && j2>=0 && M>=j1+j2+1 && k1>=0 && N>=i2+k1+1 && k2>=j2 && j1+j2>=k2+1 && k2>=-1 && N>=i6+1 && i6>=-1}
+		int c2,c3,c4,c5,c6,c7;
 		if ((M >= N+1)) {
 			{
 				for(c2=0;c2 <= min(3,N-1);c2+=1)
@@ -310,7 +317,41 @@ void bpmax(long M, long N, int* seq1, int* seq2, double**** FTable){
 		 	 	 }
 		 	 }
 		 }
-		for(c2=1;c2 <= M-1;c2+=1)
+		for(c4=0;c4 <= M-2;c4+=1)
+		 {
+		 	for(c5=0;c5 <= N-1;c5+=1)
+		 	 {
+		 	 	S5((1),(1),(0),(c4),(c5),(c4+1),(c5));
+		 	 }
+		 }
+		for(c4=0;c4 <= M-2;c4+=1)
+		 {
+		 	for(c5=0;c5 <= N-2;c5+=1)
+		 	 {
+		 	 	S7((1),(1),(1),(c4),(c5),(c4-1),(c5-1));
+		 	 	S8((1),(1),(1),(c4),(c5),(c4),(c5));
+		 	 	S5((1),(1),(1),(c4),(c5),(c4+1),(c5+1));
+		 	 	S6((1),(1),(1),(c4),(c5),(M),(N));
+		 	 }
+		 }
+		for(c3=2;c3 <= N-1;c3+=1)
+		 {
+		 	for(c4=0;c4 <= M-2;c4+=1)
+		 	 {
+		 	 	for(c5=0;c5 <= -c3+N-1;c5+=1)
+		 	 	 {
+		 	 	 	S7((1),(1),(c3),(c4),(c5),(c4-1),(c5-1));
+		 	 	 	S8((1),(1),(c3),(c4),(c5),(c4),(c5));
+		 	 	 	for(c7=c5+1;c7 <= c3+c5-1;c7+=1)
+		 	 	 	 {
+		 	 	 	 	S10((1),(1),(c3),(c4),(c5),(c4),(c7));
+		 	 	 	 }
+		 	 	 	S5((1),(1),(c3),(c4),(c5),(c4+1),(c3+c5));
+		 	 	 	S6((1),(1),(c3),(c4),(c5),(M),(N));
+		 	 	 }
+		 	 }
+		 }
+		for(c2=2;c2 <= M-1;c2+=1)
 		 {
 		 	for(c4=0;c4 <= -c2+M-1;c4+=1)
 		 	 {
@@ -319,14 +360,42 @@ void bpmax(long M, long N, int* seq1, int* seq2, double**** FTable){
 		 	 	 	S5((1),(c2),(0),(c4),(c5),(c2+c4),(c5));
 		 	 	 }
 		 	 }
-		 	for(c3=1;c3 <= N-1;c3+=1)
+		 	for(c4=0;c4 <= -c2+M-1;c4+=1)
+		 	 {
+		 	 	for(c5=0;c5 <= N-2;c5+=1)
+		 	 	 {
+		 	 	 	S7((1),(c2),(1),(c4),(c5),(c4-1),(c5-1));
+		 	 	 	S8((1),(c2),(1),(c4),(c5),(c4),(c5));
+		 	 	 	for(c6=c4+1;c6 <= c2+c4-1;c6+=1)
+		 	 	 	 {
+		 	 	 	 	S9((1),(c2),(1),(c4),(c5),(c6),(c5));
+		 	 	 	 }
+		 	 	 	S5((1),(c2),(1),(c4),(c5),(c2+c4),(c5+1));
+		 	 	 	S6((1),(c2),(1),(c4),(c5),(M),(N));
+		 	 	 }
+		 	 }
+		 	for(c3=2;c3 <= N-1;c3+=1)
 		 	 {
 		 	 	for(c4=0;c4 <= -c2+M-1;c4+=1)
 		 	 	 {
 		 	 	 	for(c5=0;c5 <= -c3+N-1;c5+=1)
 		 	 	 	 {
-		 	 	 	 	S6((1),(c2),(c3),(c4),(c5),(c4-1),(c5-1));
+		 	 	 	 	S7((1),(c2),(c3),(c4),(c5),(c4-1),(c5-1));
+		 	 	 	 	S8((1),(c2),(c3),(c4),(c5),(c4),(c5));
+		 	 	 	 	for(c7=c5+1;c7 <= c3+c5-1;c7+=1)
+		 	 	 	 	 {
+		 	 	 	 	 	S10((1),(c2),(c3),(c4),(c5),(c4),(c7));
+		 	 	 	 	 }
+		 	 	 	 	for(c6=c4+1;c6 <= c2+c4-1;c6+=1)
+		 	 	 	 	 {
+		 	 	 	 	 	S9((1),(c2),(c3),(c4),(c5),(c6),(c5));
+		 	 	 	 	 	for(c7=c5+1;c7 <= c3+c5-1;c7+=1)
+		 	 	 	 	 	 {
+		 	 	 	 	 	 	S10((1),(c2),(c3),(c4),(c5),(c6),(c7));
+		 	 	 	 	 	 }
+		 	 	 	 	 }
 		 	 	 	 	S5((1),(c2),(c3),(c4),(c5),(c2+c4),(c3+c5));
+		 	 	 	 	S6((1),(c2),(c3),(c4),(c5),(M),(N));
 		 	 	 	 }
 		 	 	 }
 		 	 }
@@ -339,6 +408,10 @@ void bpmax(long M, long N, int* seq1, int* seq2, double**** FTable){
 	#undef S4
 	#undef S5
 	#undef S6
+	#undef S7
+	#undef S8
+	#undef S9
+	#undef S10
 	
 	//Memory Free
 	free(_lin_S1);
@@ -361,7 +434,7 @@ double reduce_bpmax_S1_1(long M, long N, int ip, int jp, double** S1){
 	#define S0(i,j,k) {double __temp__ = (S1(i,k))+(S1(k+1,j)); reduceVar = __max_double(reduceVar,__temp__); }
 	{
 		//Domain
-		//{i,j,k|M>=3 && N>=3 && ip>=0 && M>=jp+1 && jp>=ip+4 && jp>=0 && M>=ip+1 && j>=i+4 && j>=0 && j>=k+1 && i>=0 && k>=i && M>=k+1 && M>=j+1 && k>=-1 && M>=i+1 && ip==i && jp==j}
+		//{i,j,k|M>=3 && N>=3 && ip>=0 && M>=jp+1 && jp>=ip+4 && jp>=0 && M>=ip+1 && j>=i+4 && j>=0 && j>=k+1 && k>=i && M>=k+1 && i>=0 && k>=-1 && M>=j+1 && M>=i+1 && ip==i && jp==j}
 		int c3;
 		for(c3=ip;c3 <= jp-1;c3+=1)
 		 {
@@ -376,29 +449,11 @@ double reduce_bpmax_S2_1(long M, long N, int ip, int jp, double** S2){
 	#define S0(i,j,k) {double __temp__ = (S2(i,k))+(S2(k+1,j)); reduceVar = __max_double(reduceVar,__temp__); }
 	{
 		//Domain
-		//{i,j,k|M>=3 && N>=3 && ip>=0 && N>=jp+1 && jp>=ip+4 && N>=ip+1 && jp>=0 && j>=i+4 && N>=i+1 && j>=k+1 && i>=0 && k>=i && N>=k+1 && N>=j+1 && k>=-1 && j>=0 && ip==i && jp==j}
+		//{i,j,k|M>=3 && N>=3 && ip>=0 && N>=jp+1 && jp>=ip+4 && N>=ip+1 && jp>=0 && j>=i+4 && N>=i+1 && j>=k+1 && k>=i && N>=k+1 && i>=0 && k>=-1 && N>=j+1 && j>=0 && ip==i && jp==j}
 		int c3;
 		for(c3=ip;c3 <= jp-1;c3+=1)
 		 {
 		 	S0((ip),(jp),(c3));
-		 }
-	}
-	#undef S0
-	return reduceVar;
-}
-double reduce_bpmax_NR_FTable_1(long M, long N, int i1p, int j1p, int i2p, int j2p, double**** FTable){
-	double reduceVar = INT_MIN;
-	#define S0(i1,j1,i2,j2,k1,k2) {double __temp__ = (FTable(i1,k1,i2,k2))+(FTable(k1+1,j1,k2+1,j2)); reduceVar = __max_double(reduceVar,__temp__); }
-	{
-		//Domain
-		//{i1,j1,i2,j2,k1,k2|M>=3 && N>=3 && i1p>=0 && j1p>=i1p+1 && M>=j1p+1 && i2p>=0 && j2p>=i2p+1 && N>=j2p+1 && j1p+j2p>=i1p+i2p+1 && k1>=i1 && j1>=k1+1 && k2>=i2 && j2>=k2+1 && j1>=i1+1 && j2>=i2+1 && i1>=0 && N>=j2+1 && M>=k1+1 && i2>=0 && k2>=-1 && N>=k2+1 && M>=j1+1 && k1>=-1 && j1+j2>=i1+i2+1 && i1p==i1 && j1p==j1 && i2p==i2 && j2p==j2}
-		int c5,c6;
-		for(c5=i1p;c5 <= j1p-1;c5+=1)
-		 {
-		 	for(c6=i2p;c6 <= j2p-1;c6+=1)
-		 	 {
-		 	 	S0((i1p),(j1p),(i2p),(j2p),(c5),(c6));
-		 	 }
 		 }
 	}
 	#undef S0
