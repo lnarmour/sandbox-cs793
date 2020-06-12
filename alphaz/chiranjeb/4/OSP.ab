@@ -1,10 +1,9 @@
 affine OSP {N|N>1}
-input int M {i|0<=i<=N};
+input 
+	int A {i,j| N>=j,i>=1};
+	int B {i,j| N>=j,i>=1};
 output
-	int C {i,j| N>=j >=i>=1};
+	int C {i,j| N>=j,i>=1};
 let
-  C[i,j] = case
-	{|i==j} : 0;
-	{|i<j} : reduce(min, [k], {|i<=k<j}: C[i,k] + C[k+1,j] + M[i-1] * M[k] * M[j]);
-	esac;
+	C[i,j] = reduce(+, [k], A[i,k]*B[k,j]);
 .

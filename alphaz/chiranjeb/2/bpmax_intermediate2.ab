@@ -1,0 +1,52 @@
+double e_intra_score (int,int) ;
+double e_inter_score (int,int) ;
+affine bpmax {M,N| M>=3 && N>=3 }
+	input
+		int seq1 {i| i>=0 && M>=i+1 } ;
+		int seq2 {i| i>=0 && N>=i+1 } ;
+	output
+		double FTable {i1,j1,i2,j2| j2>=i2 && N>=j2+1 && i1>=0 && j1>=i1 && M>=j1+1 && i2>=0 } ;
+	local
+		double S1 {i,j| j>=i && M>=j+1 && i>=0 } ;
+		double S2 {i,j| j>=i && N>=j+1 && i>=0 } ;
+		double NR_FTable {i1,j1,i2,j2| j2>=i2+1 && N>=j2+1 && i1>=0 && j1>=i1+1 && M>=j1+1 && i2>=0 } ;
+		double _serNR_FTable {i1,j1,i2,j2,k1,k2| k2>=i2 && j2>=k2+1 && i1>=0 && M>=j1+1 && i2>=0 && N>=j2+1 && k1>=i1 &&
+		j1>=k1+1 } ;
+	let
+		S1[i,j] = case
+			{ | i>=j-3 } : 0 ;
+			{ | j>=i+4 } : max (S1[i+1,j-1] + e_intra_score (seq1[i],seq1[j]),reduce (max,(i,j,k->i,j),{ | j>=k+1 } : S1[i,k] +
+			S1[k+1,j])) ;
+		esac;
+		S2[i,j] = case
+			{ | i>=j-3 } : 0 ;
+			{ | j>=i+4 } : max (S2[i+1,j-1] + e_intra_score (seq2[N-i-1],seq2[N-j-1]),reduce (max,(i,j,k->i,j),{ | j>=k+1 } :
+			S2[i,k] + S2[k+1,j])) ;
+		esac;
+		FTable[i1,j1,i2,j2] = case
+			{ | 0==-1 } : S1[i1,j1] ;
+			{ | 0==-1 } : S2[i2,j2] ;
+			{ | j2==i2 && j1==i1 } : e_inter_score (seq1[i1],seq2[N-i2-1]) ;
+			{ | j1+j2>=i1+i2+1 } : max (case
+				{ | j1>=i1+4 } : FTable[i1+1,j1-1,i2,j2] + e_intra_score (seq1[i1],seq1[j1]) ;
+				{ | i1>=j1-3 } : 0 ;
+			esac,case
+				{ | j2>=i2+4 } : FTable[i1,j1,i2+1,j2-1] + e_intra_score (seq2[N-i2-1],seq2[N-j2-1]) ;
+				{ | i2>=j2-3 } : 0 ;
+			esac,max (S1[i1,j1] + S2[i2,j2],case
+				{ | j1>=i1+1 && j2>=i2+1 } : NR_FTable ;
+				{ | j1==i1 } || { | j2==i2 } : 0 ;
+			esac)) ;
+		esac;
+		NR_FTable[i1,j1,i2,j2] = (i0,i1,i2,i3->i0,i1,i2,i3,i1-1,i3-1) @
+		(i1p,j1p,i2p,j2p,k1p,k2p->i1p,j1p,i2p,j2p,j1p-1,j2p-1) @ _serNR_FTable ;
+		_serNR_FTable[i1,j1,i2,j2,k1,k2] = case
+			{i1p,j1p,i2p,j2p,k1p,k2p| k2p>=i2p+1 } : (i1p,j1p,i2p,j2p,k1p,k2p->i1p,j1p,i2p,j2p,k1p,k2p-1) @ _serNR_FTable max
+			({i1,j1,i2,j2,k1,k2| } : (i1,j1,i2,j2,k1,k2->i1,k1,i2,k2) @ FTable + (i1,j1,i2,j2,k1,k2->k1+1,j1,k2+1,j2) @ FTable)
+			;
+			{ | k2==i2 && k1==i1 } : { | } : FTable[i1,k1,i2,k2] + FTable[k1+1,j1,k2+1,j2] ;
+			{i1p,j1p,i2p,j2p,k1p,k2p| k2p==i2p && k1p>=i1p+1 } : (i1p,j1p,i2p,j2p,k1p,k2p->i1p,j1p,i2p,j2p,k1p-1,j2p-1) @
+			_serNR_FTable max ({i1,j1,i2,j2,k1,k2| } : (i1,j1,i2,j2,k1,k2->i1,k1,i2,k2) @ FTable +
+			(i1,j1,i2,j2,k1,k2->k1+1,j1,k2+1,j2) @ FTable) ;
+		esac ;
+.
