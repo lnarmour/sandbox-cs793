@@ -50,7 +50,7 @@ setStatementOrdering(prog, system, "NR_FTable_4", "FTable");
 
 
 ## 6D schedule with K loop inside
-outDir = "./../../src/progs/bpmax/schedule_6d/best_column_coarse/autogen";
+outDir = "./out";
 #setMemoryMap(prog, system, "NR_FTable",   "NR_FTable0",   "(i1,j1,i2,j2->i1)");
 #setMemoryMap(prog, system, "NR_FTable_1", "NR_FTable1",   "(i1,j1,i2,j2->i1)");
 #setMemoryMap(prog, system, "NR_FTable_2", "NR_FTable2",   "(i1,j1,i2,j2->i1)");
