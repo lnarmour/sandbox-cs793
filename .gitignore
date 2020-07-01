@@ -1,3 +1,4 @@
 *.glog
 *.project
 *workspace
+*.log
