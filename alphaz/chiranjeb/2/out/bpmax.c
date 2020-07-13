@@ -105,12 +105,12 @@ inline double __min_double(double x, double y){
 
 
 //Local Function Declarations
-double reduce_bpmax_C_1(long, int, int, double**, double**);
 double reduce_bpmax_D_1(long, int, int, double**, double**);
 
 //Memory Macros
 #define A(i,j) A[i][j]
 #define B(i,j) B[i][j]
+#define C(i,j) C[i][j]
 #define D(i,j) D[i][j]
 
 void bpmax(long N, double** A, double** B, double** D){
@@ -120,42 +120,50 @@ void bpmax(long N, double** A, double** B, double** D){
 		exit(-1);
 	}
 	//Memory Allocation
+	int mz1, mz2;
 	
-	#define S0(i,j,i2) D(j+7,i2+17) = reduce_bpmax_C_1(N,j,i2,A,B)
+	double* _lin_C = (double*)malloc(sizeof(double)*((N) * (N)));
+	mallocCheck(_lin_C, ((N) * (N)), double);
+	double** C = (double**)malloc(sizeof(double*)*(N));
+	mallocCheck(C, (N), double*);
+	for (mz1=0;mz1 < N; mz1++) {
+		C[mz1] = &_lin_C[(mz1*(N))];
+	}
 	#define S1(i,j,i2) D(j,i2) = reduce_bpmax_D_1(N,j,i2,A,B)
+	#define S2(i,j,i2) C(i,j) = 0
+	#define S0(i0,i1,i2) C(i0+7,i1+17) = (C(i0+7,i1+17))+((A(i0,i2))*(B(i2,i1)))
 	{
 		//Domain
 		//{i,j,i2|i==N+1 && N>=2 && j>=0 && N>=j+1 && i2>=0 && N>=i2+1}
-		//{i,j,i2|i==N+1 && N>=2 && j>=0 && N>=j+1 && i2>=0 && N>=i2+1}
-		int c2,c3;
+		//{i,j,i2|i2==0 && i>=0 && j>=0 && N>=i+1 && N>=j+1 && N>=2}
+		//{i0,i1,i2|i0>=0 && i2>=0 && N>=i0+1 && N>=i2+1 && N>=2 && N>=i1+1 && i1>=0}
+		int c1,c2,c3;
+		for(c1=0;c1 <= N-1;c1+=1)
+		 {
+		 	for(c2=0;c2 <= N-1;c2+=1)
+		 	 {
+		 	 	S2((c1),(c2),(0));
+		 	 	for(c3=0;c3 <= N-1;c3+=1)
+		 	 	 {
+		 	 	 	S0((c1),(c2),(c3));
+		 	 	 }
+		 	 }
+		 }
 		for(c2=0;c2 <= N-1;c2+=1)
 		 {
 		 	for(c3=0;c3 <= N-1;c3+=1)
 		 	 {
-		 	 	S0((N+1),(c2),(c3));
 		 	 	S1((N+1),(c2),(c3));
 		 	 }
 		 }
 	}
-	#undef S0
 	#undef S1
+	#undef S2
+	#undef S0
 	
 	//Memory Free
-}
-double reduce_bpmax_C_1(long N, int ip, int jp, double** A, double** B){
-	double reduceVar = 0;
-	#define S1(i,j,k) reduceVar = (reduceVar)+((A(i,k))*(B(k,j)))
-	{
-		//Domain
-		//{i,j,k|N>=2 && ip>=0 && N>=ip+1 && jp>=0 && N>=jp+1 && i>=0 && k>=0 && N>=i+1 && N>=k+1 && j>=0 && N>=j+1 && ip==i && jp==j}
-		int c3;
-		for(c3=0;c3 <= N-1;c3+=1)
-		 {
-		 	S1((ip),(jp),(c3));
-		 }
-	}
-	#undef S1
-	return reduceVar;
+	free(_lin_C);
+	free(C);
 }
 double reduce_bpmax_D_1(long N, int ip, int jp, double** A, double** B){
 	double reduceVar = 0;
@@ -176,6 +184,7 @@ double reduce_bpmax_D_1(long N, int ip, int jp, double** A, double** B){
 //Memory Macros
 #undef A
 #undef B
+#undef C
 #undef D
 
 
