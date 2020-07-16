@@ -1,0 +1,9 @@
+affine bpmax {N | N > 1}
+input
+	double A {i,j,k,l | 0<=i,j,k,l<N };
+	double B {i,j,k,l | 0<=i,j,k,l<N };
+output
+	double C {i,j,k,l | 0<=i,j,k,l<N };
+let
+	C[i,j,k,l] = reduce(+, [r1,r2], A[i,r1,k,r2]*B[r1,j,r2,l]);
+.
