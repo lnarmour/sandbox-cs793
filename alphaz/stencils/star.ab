@@ -1,7 +1,10 @@
 affine star {N,T | 4<T && 10<=N}
 input
+	float X {t,i,j | 0<=i,j<N && 0<=t<T};
 output
 	float X {t,i,j | 0<=i,j<N && 0<=t<T};
+local
+	float X_temp {t,i,j | 0<=i,j<N && 0<=t<2};
 let
 	X[t,i,j] = {|1<=i<N-1 && 1<=j<N-1 && 1<=t} : 
 				X[t-1,  i,  j] +

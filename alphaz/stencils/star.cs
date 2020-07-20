@@ -4,6 +4,7 @@ system = "star";
 outDir = "out";
 
 setMemoryMap(prog, system, "X", "X", "(t,i,j -> t,i,j)", "2,,");
+setMemorySpace(prog, system, "X_temp", "X");
 
 generateScheduledCode(prog, system, outDir);
 generateVerificationCode(prog, system, outDir);
