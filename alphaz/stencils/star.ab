@@ -1,9 +1,9 @@
-affine star {N,T | 5<T && 10<=N}
+affine star {N,T | 4<T && 10<=N}
 input
 output
 	float X {t,i,j | 0<=i,j<N && 0<=t<T};
 let
-	X[t,i,j] = {|3<=i<N-3 && 3<=j<N-3 && 1<=t} : 
+	X[t,i,j] = {|1<=i<N-1 && 1<=j<N-1 && 1<=t} : 
 				X[t-1,  i,  j] +
 				X[t-1,i-1,  j] +
 				X[t-1,  i,j-1] +
