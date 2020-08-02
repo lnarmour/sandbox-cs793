@@ -1,11 +1,17 @@
 affine bpmax {N | N > 1}
 input
-	double A {i,j | 0<=i,j<N };
-	double B {i,j | 0<=i,j<N };
+	float FA {i,j | 0<=i,j<N };
+	float FB {i,j | 0<=i,j<N };
+	double DA {i,j | 0<=i,j<N };
+	double DB {i,j | 0<=i,j<N };
 output
-	double C {i,j | 0<=i,j<N };
-	double D {i,j | 0<=i,j<N };
+	float FMIN {i,j | 0<=i,j<N };
+	float FMAX {i,j | 0<=i,j<N };
+	double DMIN {i,j | 0<=i,j<N };
+	double DMAX {i,j | 0<=i,j<N };
 let
-	C[i,j] = reduce(+, [k], A[i,k]*B[k,j]);
-	D[i,j] = reduce(+, [k], A[i,k]*B[k,j]);
+	FMIN[i,j] = reduce(min, [k], FA[i,k]*FB[k,j]);
+	FMAX[i,j] = reduce(max, [k], FA[i,k]*FB[k,j]);
+	DMIN[i,j] = reduce(min, [k], DA[i,k]*DB[k,j]);
+	DMAX[i,j] = reduce(max, [k], DA[i,k]*DB[k,j]);
 .
